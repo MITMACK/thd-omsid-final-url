@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure OMSID Resolver</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loader { border-top-color: #f97316; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden-tool { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8 text-gray-800 font-sans">
+
+    <div id="loginScreen" class="flex items-center justify-center min-h-[80vh]">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+            <div class="text-center mb-6">
+                <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Team Access Only</h2>
+                <p class="text-gray-500 text-sm">Enter the team password to resolve OMSIDs</p>
+            </div>
+            <input type="password" id="pwordInput" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-orange-500 outline-none transition" placeholder="Password">
+            <button onclick="checkPassword()" class="w-full bg-orange-600 text-white font-bold py-3 rounded-lg hover:bg-orange-700 transition shadow-lg">Unlock Tool</button>
+            <p id="loginError" class="text-red-500 text-xs mt-3 hidden text-center font-medium italic">Incorrect password. Try again!</p>
+        </div>
+    </div>
+
+    <div id="mainTool" class="max-w-5xl mx-auto hidden-tool">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-extrabold text-orange-600 mb-2">OMSID Resolver</h1>
+            <p class="text-gray-500 italic">"Vibe Coding" with Secure Access</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-100">
+            <label class="block text-sm font-semibold mb-2 uppercase tracking-wider text-gray-600">Paste OMSIDs</label>
+            <textarea id="omsidInput" rows="6" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition" placeholder="Enter one OMSID per line..."></textarea>
+            <button onclick="resolveURLs()" class="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-[1.01] active:scale-95 shadow-lg">
+                Resolve Final URLs
+            </button>
+        </div>
+
+        <div id="loading" class="hidden flex flex-col items-center mb-8">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+            <p id="loadingText" class="text-orange-600 font-medium animate-pulse text-center">Processing...</p>
+        </div>
+
+        <div id="outputContainer" class="hidden bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+            <div class="flex flex-wrap gap-2 justify-between items-center p-4 bg-gray-50 border-b text-gray-700">
+                <h2 class="font-bold text-lg">Results</h2>
+                <div class="flex gap-2">
+                    <button onclick="copyTable()" class="text-sm bg-gray-800 text-white px-4 py-2 rounded hover:bg-black transition">Copy to Clipboard</button>
+                    <button onclick="downloadCSV()" class="text-sm bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition font-bold shadow-sm">Download CSV</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="resultsTable" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="p-4 font-semibold text-gray-600">OMSID</th>
+                            <th class="p-4 font-semibold text-gray-600">Brand</th>
+                            <th class="p-4 font-semibold text-gray-600">Final URL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CHANGE YOUR PASSWORD HERE
+        const THE_PASSWORD = "HOMEDEPOT_VIBES"; 
+
+        let resolvedData = [];
+
+        function checkPassword() {
+            const input = document.getElementById('pwordInput').value;
+            const error = document.getElementById('loginError');
+            if (input === THE_PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainTool').classList.remove('hidden-tool');
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
+
+        async function resolveURLs() {
+            const input = document.getElementById('omsidInput').value;
+            const omsids = input.split(/\s+/).filter(id => id.length > 0);
+            const resultsBody = document.getElementById('resultsBody');
+            const outputContainer = document.getElementById('outputContainer');
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+
+            if (omsids.length === 0) return alert("Paste some OMSIDs first!");
+
+            resultsBody.innerHTML = '';
+            resolvedData = [];
+            outputContainer.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            for (let i = 0; i < omsids.length; i++) {
+                const id = omsids[i];
+                loadingText.innerText = `Resolving ${i + 1} of ${omsids.length}...`;
+                
+                const shortUrl = `https://www.homedepot.com/p/${id}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(shortUrl)}`;
+
+                try {
+                    const response = await fetch(proxyUrl);
+                    const data = await response.json();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data.contents, 'text/html');
+                    const title = doc.querySelector('title')?.innerText.split(' - ')[0] || "Product";
+                    
+                    const slug = title.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').toLowerCase();
+                    const finalUrl = `https://www.homedepot.com/p/${slug}/${id}`;
+
+                    appendRow(id, "Samsung", finalUrl);
+                    resolvedData.push({ omsid: id, brand: "Samsung", url: finalUrl });
+                } catch (error) {
+                    appendRow(id, "Error", "Connection Blocked");
+                    resolvedData.push({ omsid: id, brand: "Error", url: "N/A" });
+                }
+            }
+            loading.classList.add('hidden');
+            outputContainer.classList.remove('hidden');
+        }
+
+        function appendRow(id, brand, url) {
+            const row = `<tr>
+                <td class="p-4 font-mono text-sm">${id}</td>
+                <td class="p-4 text-sm">${brand}</td>
+                <td class="p-4 text-blue-600 break-all text-xs font-mono"><a href="${url}" target="_blank">${url}</a></td>
+            </tr>`;
+            document.getElementById('resultsBody').innerHTML += row;
+        }
+
+        function downloadCSV() {
+            if (resolvedData.length === 0) return;
+            let csvContent = "data:text/csv;charset=utf-8,OMSID,Brand,Final URL\n";
+            resolvedData.forEach(row => { csvContent += `${row.omsid},${row.brand},"${row.url}"\n`; });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "dsa_page_feed.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        function copyTable() {
+            const range = document.createRange();
+            range.selectNode(document.getElementById('resultsTable'));
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            alert("Copied to clipboard!");
+        }
+    </script>
+</body>
+</html>
