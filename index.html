@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate OMSID Resolver</title>
+    <title>Enterprise OMSID Resolver</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .loader { border-top-color: #f97316; animation: spinner 1.5s linear infinite; }
@@ -11,52 +11,57 @@
         .hidden-tool { display: none; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-4 md:p-8 text-gray-800">
+<body class="bg-gray-50 min-h-screen p-4 md:p-8 text-gray-800 font-sans">
 
     <div id="loginScreen" class="flex items-center justify-center min-h-[80vh]">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 text-center">
             <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600 font-bold">THD</div>
-            <h2 class="text-2xl font-bold mb-2">Team Access</h2>
+            <h2 class="text-2xl font-bold mb-2">Team Access Only</h2>
             <input type="password" id="pwordInput" class="w-full p-3 border border-gray-300 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-orange-500" placeholder="Password">
-            <button onclick="checkPassword()" class="w-full bg-orange-600 text-white font-bold py-3 rounded-lg hover:bg-orange-700 transition">Unlock</button>
+            <button onclick="checkPassword()" class="w-full bg-orange-600 text-white font-bold py-3 rounded-lg hover:bg-orange-700 transition">Unlock Tool</button>
             <p id="loginError" class="text-red-500 text-xs mt-3 hidden italic">Incorrect Password</p>
         </div>
     </div>
 
-    <div id="mainTool" class="max-w-5xl mx-auto hidden-tool">
+    <div id="mainTool" class="max-w-6xl mx-auto hidden-tool">
         <header class="mb-10 text-center">
-            <h1 class="text-4xl font-extrabold text-orange-600 mb-2">OMSID Resolver</h1>
-            <p class="text-gray-500 italic font-medium text-sm">Targeting Final Destination URLs (Deep Link Mode)</p>
+            <h1 class="text-4xl font-extrabold text-orange-600 mb-2">OMSID Final URL Resolver</h1>
+            <p class="text-gray-500 italic font-medium">Bypassing Akamai blocks with Multi-Proxy Rotation</p>
         </header>
 
-        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
-            <label class="block text-sm font-semibold mb-2 uppercase tracking-wider text-gray-600">Enter OMSIDs (One per line)</label>
-            <textarea id="omsidInput" rows="6" class="w-full p-4 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" placeholder="336451236&#10;308900177"></textarea>
-            <button onclick="resolveURLs()" class="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition shadow-lg transform active:scale-95">
-                Resolve Final URLs
-            </button>
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-100">
+            <label class="block text-sm font-semibold mb-2 uppercase tracking-wider text-gray-600">Paste OMSIDs</label>
+            <textarea id="omsidInput" rows="5" class="w-full p-4 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition" placeholder="Enter OMSIDs here..."></textarea>
+            <div class="flex gap-4 mt-4">
+                <button onclick="resolveURLs(false)" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition shadow-lg transform active:scale-95">
+                    Resolve All URLs
+                </button>
+                <button id="retryBtn" onclick="resolveURLs(true)" class="hidden flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition shadow-lg transform active:scale-95">
+                    Retry Failed Only
+                </button>
+            </div>
         </div>
 
         <div id="loading" class="hidden flex flex-col items-center mb-8">
             <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-            <p id="loadingText" class="text-orange-600 font-medium animate-pulse text-center font-mono">Status: Awaiting Input...</p>
+            <p id="loadingText" class="text-orange-600 font-mono font-bold animate-pulse">Initializing...</p>
         </div>
 
-        <div id="outputContainer" class="hidden bg-white rounded-xl shadow-md overflow-hidden border">
+        <div id="outputContainer" class="hidden bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <div class="flex flex-wrap gap-2 justify-between items-center p-4 bg-gray-50 border-b">
-                <h2 class="font-bold text-lg">Campaign Feed Data</h2>
+                <h2 class="font-bold text-lg">Results Feed</h2>
                 <div class="flex gap-2">
-                    <button onclick="copyTable()" class="text-sm bg-gray-800 text-white px-4 py-2 rounded hover:bg-black">Copy Table</button>
-                    <button onclick="downloadCSV()" class="text-sm bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold">Download CSV</button>
+                    <button onclick="copyTable()" class="text-sm bg-gray-800 text-white px-4 py-2 rounded hover:bg-black transition">Copy Table</button>
+                    <button onclick="downloadCSV()" class="text-sm bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold shadow-sm transition">Download CSV</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
                 <table id="resultsTable" class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-gray-100 border-b">
-                            <th class="p-4 font-semibold text-gray-600">OMSID</th>
-                            <th class="p-4 font-semibold text-gray-600">Brand</th>
-                            <th class="p-4 font-semibold text-gray-600">Final URL</th>
+                            <th class="p-4 font-semibold text-gray-600 text-sm">OMSID</th>
+                            <th class="p-4 font-semibold text-gray-600 text-sm">Brand</th>
+                            <th class="p-4 font-semibold text-gray-600 text-sm">Final Destination URL</th>
                         </tr>
                     </thead>
                     <tbody id="resultsBody" class="divide-y divide-gray-100"></tbody>
@@ -66,8 +71,8 @@
     </div>
 
     <script>
-        const THE_PASSWORD = "MACKOAM"; // Update this
-        let resolvedData = [];
+        const THE_PASSWORD = "MACKOAM"; 
+        let resolvedData = {}; // Using an object to prevent duplicate rows during retries
 
         function checkPassword() {
             if (document.getElementById('pwordInput').value === THE_PASSWORD) {
@@ -78,91 +83,102 @@
             }
         }
 
-        async function resolveURLs() {
+        async function resolveURLs(isRetry) {
             const input = document.getElementById('omsidInput').value;
-            const omsids = input.split(/\s+/).filter(id => id.length > 0);
-            const resultsBody = document.getElementById('resultsBody');
-            const outputContainer = document.getElementById('outputContainer');
+            let omsids = input.split(/\s+/).filter(id => id.length > 5);
+            
+            if (isRetry) {
+                // Only target IDs that currently show an error in the table
+                omsids = Object.keys(resolvedData).filter(id => resolvedData[id].url.includes("Error"));
+            } else {
+                resolvedData = {}; // Clear previous data on fresh run
+                document.getElementById('resultsBody').innerHTML = '';
+            }
+
+            if (omsids.length === 0) return alert("No OMSIDs to process!");
+
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
+            const outputContainer = document.getElementById('outputContainer');
 
-            resultsBody.innerHTML = '';
-            resolvedData = [];
-            outputContainer.classList.add('hidden');
             loading.classList.remove('hidden');
+            outputContainer.classList.remove('hidden');
 
             for (let i = 0; i < omsids.length; i++) {
                 const id = omsids[i].trim();
-                loadingText.innerText = `Resolving OMSID ${id} (${i + 1}/${omsids.length})...`;
+                loadingText.innerText = `Resolving ${id} (${i + 1}/${omsids.length})...`;
                 
-                // NEW STEALTH STRATEGY: Fetch headers only to find the redirect path
-                const result = await getRedirectedUrl(id);
+                const finalUrl = await fetchWithProxyRotation(id);
+                const brand = finalUrl.includes("Error") ? "Error" : "Samsung";
+
+                resolvedData[id] = { brand, url: finalUrl };
+                renderTable();
                 
-                appendRow(id, "Samsung", result);
-                resolvedData.push({ omsid: id, brand: "Samsung", url: result });
-                
-                // Anti-Detection Delay
-                await new Promise(r => setTimeout(r, 800));
+                // Smart Delay: Randomized to look human
+                await new Promise(r => setTimeout(r, 1000 + Math.random() * 500));
             }
 
             loading.classList.add('hidden');
-            outputContainer.classList.remove('hidden');
+            document.getElementById('retryBtn').classList.toggle('hidden', !Object.values(resolvedData).some(d => d.url.includes("Error")));
         }
 
-        async function getRedirectedUrl(id) {
+        async function fetchWithProxyRotation(id) {
+            // PROXY LIST
+            const proxies = [
+                (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+                (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+                (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
+            ];
+
             const targetUrl = `https://www.homedepot.com/p/${id}`;
-            // Switching to a more modern proxy that handles redirects more gracefully
-            const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            
+            for (let proxyFn of proxies) {
+                try {
+                    const res = await fetch(proxyFn(targetUrl));
+                    const data = await res.json().catch(() => ({ contents: null }));
+                    const html = data.contents || await res.text();
 
-            try {
-                const res = await fetch(proxy);
-                const data = await res.json();
-                const html = data.contents;
+                    if (html.toLowerCase().includes("access denied") || html.toLowerCase().includes("error-page")) continue;
 
-                // If the proxy returns an "Error Page" or "Access Denied" in the HTML content
-                if (html.toLowerCase().includes("access denied") || html.toLowerCase().includes("error-page")) {
-                    return "Error: Akamai Blocked Access";
-                }
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const canonical = doc.querySelector('link[rel="canonical"]')?.href;
 
-                // Parse the canonical link directly from the metadata (harder to fake)
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const canonical = doc.querySelector('link[rel="canonical"]')?.href;
-                
-                if (canonical && !canonical.includes("error-page")) {
-                    return canonical;
-                }
+                    if (canonical && !canonical.includes("error-page")) return canonical;
 
-                // Fallback: If we can't find the canonical, try to reconstruct from title
-                const title = doc.querySelector('title')?.innerText.split('|')[0].split('-')[0].trim() || "product";
-                const slug = title.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').toLowerCase();
-                return `https://www.homedepot.com/p/${slug}/${id}`;
-
-            } catch (e) {
-                return "Error: Timeout/Network";
+                    // Fallback Slug Extraction
+                    const title = doc.querySelector('title')?.innerText.split('|')[0].trim() || "";
+                    if (title && !title.toLowerCase().includes("oops")) {
+                        const slug = title.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').toLowerCase();
+                        return `https://www.homedepot.com/p/${slug}/${id}`;
+                    }
+                } catch (e) { continue; }
             }
+            return "Error: All Proxies Blocked. Try 'Retry Failed'.";
         }
 
-        function appendRow(id, brand, url) {
-            const isError = url.includes("Error");
-            const row = `<tr class="${isError ? 'bg-red-50' : ''}">
-                <td class="p-4 font-mono text-sm font-bold">${id}</td>
-                <td class="p-4 text-sm">${brand}</td>
-                <td class="p-4 text-blue-600 break-all text-xs font-mono">
-                    ${isError ? `<span class="text-red-600 font-bold">${url}</span>` : `<a href="${url}" target="_blank" class="hover:underline">${url}</a>`}
-                </td>
-            </tr>`;
-            document.getElementById('resultsBody').innerHTML += row;
+        function renderTable() {
+            const body = document.getElementById('resultsBody');
+            body.innerHTML = '';
+            Object.entries(resolvedData).forEach(([id, data]) => {
+                const isErr = data.url.includes("Error");
+                body.innerHTML += `<tr class="${isErr ? 'bg-red-50' : ''}">
+                    <td class="p-4 font-mono text-sm font-bold">${id}</td>
+                    <td class="p-4 text-sm">${data.brand}</td>
+                    <td class="p-4 text-xs font-mono break-all ${isErr ? 'text-red-600' : 'text-blue-600 underline'}">
+                        ${isErr ? data.url : `<a href="${data.url}" target="_blank">${data.url}</a>`}
+                    </td>
+                </tr>`;
+            });
         }
 
         function downloadCSV() {
             let csv = "OMSID,Brand,Final URL\n";
-            resolvedData.forEach(r => { csv += `${r.omsid},${r.brand},"${r.url}"\n`; });
+            Object.entries(resolvedData).forEach(([id, d]) => { csv += `${id},${d.brand},"${d.url}"\n`; });
             const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `thd_final_urls_${new Date().getTime()}.csv`;
+            a.href = URL.createObjectURL(blob);
+            a.download = `thd_export_${Date.now()}.csv`;
             a.click();
         }
 
@@ -172,7 +188,7 @@
             window.getSelection().removeAllRanges();
             window.getSelection().addRange(range);
             document.execCommand('copy');
-            alert("Table copied to clipboard!");
+            alert("Table copied!");
         }
     </script>
 </body>
